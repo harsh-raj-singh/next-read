@@ -1,11 +1,10 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { Article } from '@/lib/hn/types';
-import InteractionButtons from './InteractionButtons';
+import { useState } from 'react';
+import PlatformBadge from '@/components/PlatformBadge';
 
 interface ArticleCardProps {
-  article: Article;
+  article: any;
   reason?: string;
   isExploration?: boolean;
   onLike: (articleId: number) => Promise<void>;
@@ -26,6 +25,8 @@ export default function ArticleCard({
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
+  const [showRating, setShowRating] = useState(false);
+  const [showPlatform, setShowPlatform] = useState(false);
   const [viewed, setViewed] = useState(false);
   
   const domain = article.url
@@ -42,8 +43,31 @@ export default function ArticleCard({
     window.open(article.url || `https://news.ycombinator.com/item?id=${article.id}`, '_blank');
   };
   
+  const handleLike = async () => {
+    await onLike(article.id);
+    setLiked(true);
+    setDisliked(false);
+    setShowRating(true);
+  };
+  
+  const handleDislike = async () => {
+    await onDislike(article.id);
+    setDisliked(true);
+    setLiked(false);
+    setShowRating(false);
+  };
+  
+  const handleRate = async (newRating: number) => {
+    await onRate(article.id, newRating);
+    setRating(newRating);
+  };
+  
   return (
-    <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 p-5 mb-4">
+    <div 
+      className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 p-5 mb-4 relative"
+      onMouseEnter={() => setShowPlatform(true)}
+      onMouseLeave={() => setShowPlatform(false)}
+    >
       {reason && (
         <div className="mb-3 flex items-center gap-2">
           {isExploration && (
@@ -57,7 +81,7 @@ export default function ArticleCard({
         </div>
       )}
       
-      <div className="mb-3">
+      <div className="mb-3 relative">
         <h2
           onClick={handleClick}
           className="text-xl font-semibold text-gray-800 hover:text-orange-600 cursor-pointer transition-colors mb-2"
@@ -79,29 +103,70 @@ export default function ArticleCard({
               💬 {article.descendants}
             </span>
           )}
+          {showPlatform && (
+            <PlatformBadge platformName="Hacker News" />
+          )}
         </div>
       </div>
       
-      <InteractionButtons
-        articleId={article.id}
-        liked={liked}
-        disliked={disliked}
-        rating={rating}
-        onLike={async () => {
-          await onLike(article.id);
-          setLiked(true);
-          setDisliked(false);
-        }}
-        onDislike={async () => {
-          await onDislike(article.id);
-          setDisliked(true);
-          setLiked(false);
-        }}
-        onRate={async (newRating) => {
-          await onRate(article.id, newRating);
-          setRating(newRating);
-        }}
-      />
+      <div className="flex items-center gap-4 mt-3">
+        <button
+          onClick={handleLike}
+          className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+            liked
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+          aria-label="Like article"
+        >
+          <span className="text-lg">👍</span>
+          <span className="text-sm font-medium">Like</span>
+        </button>
+        
+        <button
+          onClick={handleDislike}
+          className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
+            disliked
+              ? 'bg-red-100 text-red-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+          aria-label="Dislike article"
+        >
+          <span className="text-lg">👎</span>
+          <span className="text-sm font-medium">Dislike</span>
+        </button>
+        
+        {showRating ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Rate:</span>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => {
+                const isActive = (rating || 0) >= star;
+                return (
+                  <button
+                    key={star}
+                    onClick={() => handleRate(star)}
+                    className="text-2xl transition-transform hover:scale-110"
+                    aria-label={`Rate ${star} stars`}
+                  >
+                    <span
+                      className={
+                        isActive
+                          ? 'text-orange-500'
+                          : 'text-gray-300'
+                      }
+                    >
+                      ★
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <span className="text-sm text-gray-500">Like to rate</span>
+        )}
+      </div>
     </div>
   );
 }

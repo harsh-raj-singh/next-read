@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import StarRating from './StarRating';
+import StarRating from './RatingComponent'
 import { useState } from 'react';
 
 interface InteractionButtonsProps {
@@ -23,11 +23,13 @@ export default function InteractionButtons({
   onRate
 }: InteractionButtonsProps) {
   const [loading, setLoading] = useState(false);
+  const [showRating, setShowRating] = useState(liked);
   
   const handleLike = async () => {
     if (loading) return;
     setLoading(true);
     await onLike();
+    setShowRating(true);
     setLoading(false);
   };
   
@@ -35,6 +37,7 @@ export default function InteractionButtons({
     if (loading) return;
     setLoading(true);
     await onDislike();
+    setShowRating(false);
     setLoading(false);
   };
   
@@ -75,10 +78,11 @@ export default function InteractionButtons({
         <span className="text-sm font-medium">Dislike</span>
       </button>
       
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-gray-500">Rate:</span>
+      {showRating ? (
         <StarRating rating={rating} onChange={handleRate} />
-      </div>
+      ) : (
+        <span className="text-sm text-gray-500">Like to rate</span>
+      )}
     </div>
   );
 }

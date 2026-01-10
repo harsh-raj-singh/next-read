@@ -5,20 +5,27 @@ import { getRecommendations, getTrendingArticles } from '@/lib/recommendations/c
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (!userId) {
+    if (!user || user.is_anonymous) {
       return NextResponse.json(
-        { error: 'userId is required' },
-        { status: 400 }
+        { error: 'Authentication required. Please sign in.' },
+        { status: 401 }
+      );
+    }
+    
+    if (authError) {
+      console.error('Auth error:', authError);
+      return NextResponse.json(
+        { error: 'Authentication failed' },
+        { status: 500 }
       );
     }
     
     const { data: interactions } = await supabase
       .from('user_interactions')
       .select('article_id')
-      .eq('user_id', userId);
+      .eq('user_id', user.id);
     
     const interactionCount = interactions?.length || 0;
     
@@ -34,7 +41,7 @@ export async function GET(request: Request) {
         reason: 'Trending article'
       }));
     } else {
-      recommendations = await getRecommendations(userId);
+      recommendations = await getRecommendations(user.id);
     }
     
     return NextResponse.json({
