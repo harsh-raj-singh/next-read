@@ -106,10 +106,13 @@ DROP POLICY IF EXISTS "Users can view own recommendations" ON recommendations;
 CREATE POLICY "Users can view own recommendations" ON recommendations
   FOR SELECT USING (auth.uid() = user_id);
 
--- Articles are public (anyone can read)
+-- Articles are public (anyone can read and write)
 DROP POLICY IF EXISTS "Anyone can read articles" ON articles;
-CREATE POLICY "Anyone can read articles" ON articles
-  FOR SELECT USING (true);
+CREATE POLICY "Public can read and write articles" ON articles
+  FOR ALL
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
 
 -- 9. Create trigger to auto-create profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

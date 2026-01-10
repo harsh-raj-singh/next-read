@@ -8,16 +8,19 @@ import { ensureAnonymousUser } from '@/lib/supabase/auth-client';
 export default function Home() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [initializing, setInitializing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [interactionCount, setInteractionCount] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<string>('personalized');
+  const [articlesInitialized, setArticlesInitialized] = useState(false);
   
   useEffect(() => {
     async function init() {
       try {
         const id = await ensureAnonymousUser();
         setUserId(id);
+        await initializeArticles();
         await fetchRecommendations(id);
       } catch (err) {
         console.error('Error initializing:', err);
@@ -27,6 +30,23 @@ export default function Home() {
     
     init();
   }, []);
+  
+  async function initializeArticles() {
+    try {
+      setInitializing(true);
+      const response = await fetch('/api/init');
+      const data = await response.json();
+      
+      if (data.success && data.stats && data.stats.upserted > 0) {
+        console.log(`Initialized ${data.stats.upserted} articles`);
+        setArticlesInitialized(true);
+      }
+    } catch (err) {
+      console.error('Error initializing articles:', err);
+    } finally {
+      setInitializing(false);
+    }
+  }
   
   async function fetchRecommendations(id: string) {
     setLoading(true);
@@ -110,6 +130,22 @@ export default function Home() {
     }
   }
   
+  if (initializing) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-orange-600 border-t-transparent mb-4"></div>
+              <p className="text-gray-600">Fetching articles from Hacker News...</p>
+              <p className="text-sm text-gray-500 mt-2">This may take 30-60 seconds</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
+  
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50">
@@ -134,12 +170,23 @@ export default function Home() {
               Oops! Something went wrong
             </h2>
             <p className="text-red-700 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Refresh Page
-            </button>
+            <div className="space-x-2">
+              <button
+                onClick={async () => {
+                  await initializeArticles();
+                  if (userId) await fetchRecommendations(userId);
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              >
+                Fetch Articles
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Refresh Page
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -161,12 +208,23 @@ export default function Home() {
               }
             </p>
           </div>
-          <button
-            onClick={() => userId && fetchRecommendations(userId)}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-          >
-            Refresh
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                await initializeArticles();
+                if (userId) await fetchRecommendations(userId);
+              }}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Fetch Articles
+            </button>
+            <button
+              onClick={() => userId && fetchRecommendations(userId)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
         
         {recommendations.length === 0 ? (
@@ -174,9 +232,18 @@ export default function Home() {
             <h3 className="text-xl font-semibold text-gray-800 mb-2">
               No articles found
             </h3>
-            <p className="text-gray-600">
-              Try refreshing or check back later for new articles.
+            <p className="text-gray-600 mb-4">
+              Click "Fetch Articles" button above to get started.
             </p>
+            <button
+              onClick={async () => {
+                await initializeArticles();
+                if (userId) await fetchRecommendations(userId);
+              }}
+              className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+            >
+              Fetch Articles from Hacker News
+            </button>
           </div>
         ) : (
           <div>
