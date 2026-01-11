@@ -22,9 +22,7 @@ export default function LoginPage() {
       formData.append('email', email)
       formData.append('password', password)
       
-      console.log('Attempting to sign in with:', email)
       const result = await signIn(formData)
-      console.log('Sign in result:', result)
       
       if (result.error) {
         setError(result.error)
@@ -33,7 +31,6 @@ export default function LoginPage() {
         router.refresh()
       }
     } catch (error) {
-      console.error('Sign in error:', error)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)

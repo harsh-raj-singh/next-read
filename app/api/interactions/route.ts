@@ -3,13 +3,18 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.nextUrl.searchParams.get('userId')
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    if (!user || user.is_anonymous) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+    }
+    
+    if (authError) {
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
     }
 
-    const supabase = await createClient()
+    const userId = user.id
 
     const { data: interactions, error } = await supabase
       .from('user_interactions')
@@ -17,7 +22,6 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userId)
 
     if (error) {
-      console.error('Error fetching user interactions:', error)
       return NextResponse.json({ error: 'Failed to fetch interactions' }, { status: 500 })
     }
 
@@ -26,7 +30,6 @@ export async function GET(request: NextRequest) {
       interactions: interactions || []
     })
   } catch (error) {
-    console.error('Error in interactions API:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

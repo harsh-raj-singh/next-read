@@ -35,9 +35,7 @@ export default function SignupPage() {
       formData.append('email', email)
       formData.append('password', password)
       
-      console.log('Attempting to sign up with:', email)
       const result = await signUp(formData)
-      console.log('Sign up result:', result)
       
       if (result.error) {
         setError(result.error)
@@ -48,7 +46,6 @@ export default function SignupPage() {
         setSuccess(true)
       }
     } catch (error) {
-      console.error('Sign up error:', error)
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)

@@ -14,18 +14,18 @@ export async function POST(request: Request) {
     }
     
     if (authError) {
-      console.error('Auth error:', authError);
       return NextResponse.json(
         { error: 'Authentication failed' },
         { status: 500 }
       );
     }
     
-    const { userId, articleId, rating } = await request.json();
+    const { articleId, rating } = await request.json();
+    const userId = user.id;
     
-    if (!userId || !articleId || !rating) {
+    if (!articleId || !rating) {
       return NextResponse.json(
-        { error: 'userId, articleId, and rating are required' },
+        { error: 'articleId and rating are required' },
         { status: 400 }
       );
     }
@@ -49,7 +49,6 @@ export async function POST(request: Request) {
     });
     
     if (error) {
-      console.error('Error rating article:', error);
       return NextResponse.json(
         { error: 'Failed to rate article' },
         { status: 500 }
@@ -62,7 +61,6 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error('Error rating article:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

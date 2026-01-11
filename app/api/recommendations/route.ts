@@ -15,7 +15,6 @@ export async function GET(request: Request) {
     }
     
     if (authError) {
-      console.error('Auth error:', authError);
       return NextResponse.json(
         { error: 'Authentication failed' },
         { status: 500 }
@@ -52,9 +51,8 @@ export async function GET(request: Request) {
     });
     
   } catch (error) {
-    console.error('Error fetching recommendations:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: String(error) },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

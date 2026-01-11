@@ -84,13 +84,18 @@ export async function getContentBasedRecommendations(
 
   const sevenDaysAgo = Math.floor(Date.now() / 1000) - (7 * 24 * 60 * 60);
 
-  const { data: articles } = await supabase
+  let articlesQuery = supabase
     .from('articles')
     .select('*')
     .gte('time', sevenDaysAgo)
-    .not('id', 'in', `(${Array.from(seenIds).join(',')})`)
     .limit(100)
     .order('score', { ascending: false });
+
+  if (seenIds.size > 0) {
+    articlesQuery = articlesQuery.not('id', 'in', `(${Array.from(seenIds).join(',')})`)
+  }
+
+  const { data: articles } = await articlesQuery;
 
   if (!articles || articles.length === 0) {
     return [];

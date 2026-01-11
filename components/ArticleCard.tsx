@@ -42,11 +42,23 @@ export default function ArticleCard({
   const timeAgo = formatTimeAgo(article.time);
   
   const handleClick = async () => {
-    if (!viewed && article.url) {
-      await onView(article.id);
-      setViewed(true);
+    const url = article.url || `https://news.ycombinator.com/item?id=${article.id}`
+    
+    try {
+      const validatedUrl = new URL(url)
+      if (validatedUrl.protocol === 'javascript:' || validatedUrl.protocol === 'data:') {
+        throw new Error('Invalid URL protocol')
+      }
+      
+      if (!viewed && article.url) {
+        await onView(article.id);
+        setViewed(true);
+      }
+      window.open(validatedUrl.toString(), '_blank');
+    } catch (error) {
+      console.error('Invalid URL:', url)
+      window.open(`https://news.ycombinator.com/item?id=${article.id}`, '_blank');
     }
-    window.open(article.url || `https://news.ycombinator.com/item?id=${article.id}`, '_blank');
   };
   
   const handleLike = async () => {

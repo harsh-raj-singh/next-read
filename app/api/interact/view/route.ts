@@ -14,18 +14,18 @@ export async function POST(request: Request) {
     }
     
     if (authError) {
-      console.error('Auth error:', authError);
       return NextResponse.json(
         { error: 'Authentication failed' },
         { status: 500 }
       );
     }
     
-    const { userId, articleId } = await request.json();
+    const { articleId } = await request.json();
+    const userId = user.id;
     
-    if (!userId || !articleId) {
+    if (!articleId) {
       return NextResponse.json(
-        { error: 'userId and articleId are required' },
+        { error: 'articleId is required' },
         { status: 400 }
       );
     }
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
     });
     
     if (rpcError) {
-      console.error('Error incrementing visit count:', rpcError);
       return NextResponse.json(
         { error: 'Failed to track view' },
         { status: 500 }
@@ -49,7 +48,6 @@ export async function POST(request: Request) {
     });
     
   } catch (error) {
-    console.error('Error tracking view:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
