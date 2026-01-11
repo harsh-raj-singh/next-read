@@ -1,5 +1,5 @@
 -- ============================================
--- Next Read: Multi-Platform Schema
+-- Next Read: Simple Platform Schema (No Foreign Key)
 -- Run this in Supabase SQL Editor
 -- ============================================
 
@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS platforms (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Add platform_id to articles
+-- 2. Add platform_id to articles (simple version)
+-- This adds the column without a foreign key constraint
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -25,7 +26,7 @@ BEGIN
     WHERE table_name = 'articles'
     AND column_name = 'platform_id'
   ) THEN
-    ALTER TABLE articles ADD COLUMN platform_id INTEGER REFERENCES platforms(id);
+    ALTER TABLE articles ADD COLUMN IF NOT EXISTS platform_id INTEGER;
   END IF;
 END $$;
 
@@ -46,41 +47,27 @@ ON CONFLICT (slug) DO NOTHING;
 ALTER TABLE platforms ENABLE ROW LEVEL SECURITY;
 
 -- 6. Create RLS policies for platforms
-DROP POLICY IF EXISTS "Public can read platforms" ON platforms;
-CREATE POLICY "Public can read platforms" ON platforms
-  FOR SELECT USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies 
+    WHERE tablename = 'platforms' 
+    AND policyname = 'Public can read platforms'
+  ) THEN
+    CREATE POLICY "Public can read platforms" ON platforms
+      FOR SELECT USING (true);
+  END IF;
+END $$;
 
--- 7. Create index for platform queries
+-- 7. Create indexes for platform queries
 CREATE INDEX IF NOT EXISTS idx_articles_platform ON articles(platform_id);
 CREATE INDEX IF NOT EXISTS idx_platforms_priority ON platforms(priority DESC);
-
--- 8. Update RLS policies to require authenticated users
-DROP POLICY IF EXISTS "Users can insert own interactions" ON user_interactions;
-CREATE POLICY "Users can insert own interactions" ON user_interactions
-  FOR INSERT WITH CHECK (auth.uid() = user_id AND NOT auth.uid() IS ANONYMOUS);
-
-DROP POLICY IF EXISTS "Users can update own interactions" ON user_interactions;
-CREATE POLICY "Users can update own interactions" ON user_interactions
-  FOR UPDATE USING (auth.uid() = user_id AND NOT auth.uid() IS ANONYMOUS);
-
-DROP POLICY IF EXISTS "Users can view own interactions" ON user_interactions;
-CREATE POLICY "Users can view own interactions" ON user_interactions
-  FOR SELECT USING (auth.uid() = user_id AND NOT auth.uid() IS ANONYMOUS);
-
-DROP POLICY IF EXISTS "Users can insert own interactions" ON user_interactions;
-CREATE POLICY "Users can insert own interactions" ON user_interactions
-  FOR INSERT WITH CHECK (auth.uid() = user_id AND NOT auth.uid() IS ANONYMOUS);
-
-DROP POLICY IF EXISTS "Users can view own recommendations" ON recommendations;
-CREATE POLICY "Users can view own recommendations" ON recommendations
-  FOR SELECT USING (auth.uid() = user_id AND NOT auth.uid() IS ANONYMOUS);
 
 -- Success message
 DO $$
 BEGIN
   RAISE NOTICE '====================================';
-  RAISE NOTICE 'Multi-platform schema created!';
+  RAISE NOTICE 'Platform schema created!';
   RAISE NOTICE 'Platform support: Hacker News (active), others (coming soon)';
-  RAISE NOTICE 'RLS policies updated: Require authenticated users';
   RAISE NOTICE '====================================';
 END $$;

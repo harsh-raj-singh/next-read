@@ -10,12 +10,12 @@ export async function middleware(request: NextRequest) {
   )
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard')
   
-  if (user && !user.is_anonymous && isAuthPage) {
+  if (user && isAuthPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
   
   if (isDashboard) {
-    if (!user || user.is_anonymous) {
+    if (!user) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
   }

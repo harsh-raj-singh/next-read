@@ -88,7 +88,7 @@ export async function getContentBasedRecommendations(
     .from('articles')
     .select('*')
     .gte('time', sevenDaysAgo)
-    .not('id', `(${Array.from(seenIds).join(',')})`)
+    .not('id', 'in', `(${Array.from(seenIds).join(',')})`)
     .limit(100)
     .order('score', { ascending: false });
 

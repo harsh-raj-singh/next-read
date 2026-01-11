@@ -11,6 +11,11 @@ interface ArticleCardProps {
   onDislike: (articleId: number) => Promise<void>;
   onRate: (articleId: number, rating: number) => Promise<void>;
   onView: (articleId: number) => Promise<void>;
+  currentInteraction?: {
+    liked: boolean;
+    disliked: boolean;
+    rating: number | null;
+  };
 }
 
 export default function ArticleCard({
@@ -20,12 +25,13 @@ export default function ArticleCard({
   onLike,
   onDislike,
   onRate,
-  onView
+  onView,
+  currentInteraction
 }: ArticleCardProps) {
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
-  const [rating, setRating] = useState<number | null>(null);
-  const [showRating, setShowRating] = useState(false);
+  const [liked, setLiked] = useState(currentInteraction?.liked || false);
+  const [disliked, setDisliked] = useState(currentInteraction?.disliked || false);
+  const [rating, setRating] = useState<number | null>(currentInteraction?.rating || null);
+  const [showRating, setShowRating] = useState(currentInteraction?.liked || false);
   const [showPlatform, setShowPlatform] = useState(false);
   const [viewed, setViewed] = useState(false);
   
@@ -93,7 +99,7 @@ export default function ArticleCard({
           <span className="font-medium text-gray-700">
             {domain}
           </span>
-          <span>by {article.author}</span>
+          <span>by {article.by || article.author}</span>
           <span>{timeAgo}</span>
           <span className="flex items-center gap-1">
             ⬆️ {article.score} points

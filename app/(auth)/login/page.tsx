@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { signIn, signUp } from '@/lib/auth/actions'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -15,19 +17,27 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     
-    const formData = new FormData()
-    formData.append('email', email)
-    formData.append('password', password)
-    
-    const result = await signIn(formData)
-    
-    if (result.error) {
-      setError(result.error)
-    } else {
-      window.location.href = '/dashboard'
+    try {
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('password', password)
+      
+      console.log('Attempting to sign in with:', email)
+      const result = await signIn(formData)
+      console.log('Sign in result:', result)
+      
+      if (result.error) {
+        setError(result.error)
+      } else {
+        router.push('/dashboard')
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Sign in error:', error)
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
   
   return (

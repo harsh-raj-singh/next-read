@@ -40,6 +40,8 @@ export async function POST(request: Request) {
     const { error } = await supabase.from('user_interactions').upsert({
       user_id: userId,
       article_id: articleId,
+      liked: true,
+      disliked: false,
       rating,
       last_visited: new Date().toISOString()
     }, {

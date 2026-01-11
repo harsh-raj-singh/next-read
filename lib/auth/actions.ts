@@ -35,7 +35,7 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth-callback`
     }
   })
   
@@ -44,7 +44,13 @@ export async function signUp(formData: FormData) {
   }
   
   revalidatePath('/')
-  return { success: true }
+  revalidatePath('/dashboard')
+  
+  if (data.session) {
+    return { success: true, autoConfirmed: true }
+  }
+  
+  return { success: true, autoConfirmed: false }
 }
 
 export async function signOut() {
