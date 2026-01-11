@@ -31,3 +31,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Documentation files (keep locally, exclude from GitHub)
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_NOTES.md
+FIXED_SQL_GUIDE.md
+FIX_NO_ARTICLES.md
+IMPLEMENTATION_COMPLETE.md
+PHASE1_COMPLETE.md
