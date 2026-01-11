@@ -1,4 +1,3 @@
-import { getUser } from '@/lib/auth/actions'
 import Link from 'next/link'
 
 export default function Header() {
