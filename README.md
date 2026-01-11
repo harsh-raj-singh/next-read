@@ -1,106 +1,147 @@
-# HN Recommender
+# Next Read
 
-Personalized Hacker News article recommendations using hybrid machine learning (TF-IDF + collaborative filtering).
+**Your intelligent article companion** — Personalized recommendations that learn what you love to read.
 
-## 🚀 Features
+## ✨ Features
 
-- Real-time article fetching from Hacker News API
-- Like/Dislike articles to train your personal model
-- Rate articles (1-5 stars) for better recommendations
-- Hybrid recommendation system (content + collaborative filtering)
-- 25% exploration rate for discovering new topics
-- Resurfacing of older articles you might have missed
-- Real-time updates using Supabase subscriptions
+- **🧠 Smart Personalization** — Learns your reading preferences through interactions
+- **📚 Multi-Source Content** — Aggregates quality articles from across the web (currently Hacker News, expanding to more sources)
+- **👍👎 Interactive Training** — Like, dislike, and rate articles to refine your recommendations
+- **🎯 Balanced Discovery** — Mix of personalized content and exploration of new topics
+- **📱 Beautiful Interface** — Clean, modern design optimized for reading
+- **🔒 Privacy-First** — Your data stays yours with enterprise-grade security
 
-## 🛠️ Tech Stack
+## 🎯 How It Works
 
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend/Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (Google + Email)
-- **ML**: TF-IDF (natural npm package)
-- **Deployment**: Vercel (free tier)
-- **Scheduling**: Vercel Cron Jobs (every 6 hours)
+1. **Sign up** and start reading curated tech articles
+2. **Interact** with articles (like, dislike, rate) to train your personal model
+3. **Get smarter** recommendations that improve over time
+4. **Discover** new topics and authors aligned with your interests
 
-## 📦 Setup Instructions
+## 🛠️ Tech Overview
 
-### 1. Clone and Install
+**Built with modern web technologies:**
+- **Next.js 15** — React framework with App Router
+- **Supabase** — PostgreSQL database & authentication
+- **Machine Learning** — TF-IDF content analysis + user preference tracking
+- **Tailwind CSS** — Beautiful, responsive UI
+- **Vercel** — Cloud deployment & cron jobs
+
+**How recommendations work:**
+1. **Content Analysis** — Articles are processed using natural language processing
+2. **User Profiling** — Your interactions build a unique interest profile
+3. **Smart Matching** — Algorithm finds articles matching your preferences
+4. **Exploration** — Introduces diverse content to prevent filter bubbles
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ installed
+- Supabase account (free tier works)
+
+### Installation
 
 ```bash
-cd recommender
+# Clone the repository
+git clone https://github.com/harsh-raj-singh/next-read.git
+cd next-read
+
+# Install dependencies
 npm install
-```
 
-### 2. Set Up Supabase Database
+# Set up environment variables
+cp .env.example .env.local
+# Add your Supabase credentials to .env.local
 
-1. Go to [Supabase SQL Editor](https://supabase.com/dashboard/project/bljkswrtifkzumezrhqy/sql/new)
-2. Copy and paste the contents of `supabase-schema.sql`
-3. Click "Run" to execute
-4. Verify tables are created in the Table Editor
+# Run database setup
+# Upload supabase-schema.sql to Supabase SQL Editor
 
-### 3. Verify Setup
-
-```bash
+# Start development server
 npm run dev
 ```
 
-Visit `http://localhost:3000` to see the landing page.
+Visit `http://localhost:3000` to see the app.
+
+### Database Setup
+
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Go to SQL Editor in your Supabase dashboard
+3. Run the contents of `supabase-schema.sql`
+4. Run `security-fixes.sql` for production deployment
+5. Copy your Supabase credentials to `.env.local`
+
+## 🔐 Security
+
+This application implements enterprise-grade security:
+- ✅ Row-Level Security (RLS) on all database tables
+- ✅ Secure authentication with Supabase Auth
+- ✅ API authorization checks on all endpoints
+- ✅ Input validation and sanitization
+- ✅ No sensitive data exposure in client code
+- ✅ Secure database access controls
+
+*See `CLAUDE.md` for detailed security implementation and architecture documentation.*
+
+## 🗺️ Roadmap
+
+**Current Release:**
+- ✅ Hacker News integration
+- ✅ User authentication & profiles
+- ✅ Content-based recommendations
+- ✅ Interaction tracking (like, dislike, rate)
+- ✅ Responsive UI design
+
+**Coming Soon:**
+- 🔄 Additional content sources (tech blogs, newsletters, research papers)
+- 🔄 Collaborative filtering (recommendations based on similar users)
+- 🔄 Social features (share recommendations, follow users)
+- 🔄 Mobile apps (iOS & Android)
+- 🔄 Browser extension for quick article saving
+- 🔄 Export reading history and statistics
 
 ## 📁 Project Structure
 
 ```
-recommender/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Landing page
-│   └── globals.css         # Global styles
+next-read/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Authentication routes
+│   ├── (dashboard)/       # Protected user routes
+│   └── api/               # API endpoints
+├── components/            # React components
 ├── lib/
-│   └── supabase/          # Supabase clients
-│       ├── client.ts       # Browser client
-│       └── server.ts       # Server client
-├── supabase-schema.sql    # Database schema
-└── README.md
+│   ├── auth/             # Authentication logic
+│   ├── ml/               # Machine learning algorithms
+│   ├── recommendations/   # Recommendation engine
+│   └── supabase/         # Database clients
+├── supabase-schema.sql   # Database structure
+├── security-fixes.sql    # Security policies
+└── CLAUDE.md            # Detailed documentation
 ```
-
-## 🔐 Environment Variables
-
-Required environment variables are already set in `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://bljkswrtifkzumezrhqy.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_kT4CgRCqwg7iKIWt6WnjCA_lNco8fSB
-```
-
-## 📊 Database Schema
-
-### Tables
-
-- **profiles**: User profiles (extended from auth.users)
-- **articles**: Hacker News articles with TF-IDF vectors
-- **user_interactions**: User likes, dislikes, ratings, visit counts
-- **recommendations**: Cached personalized recommendations
-- **article_similarity**: Precomputed article similarity matrix
-
-### Row Level Security (RLS)
-
-All tables have RLS enabled:
-- Users can only access their own data (interactions, recommendations)
-- Articles are publicly readable
-- Automatic profile creation on signup via trigger
-
-## 🎯 Phase Status
-
-- ✅ **Phase 1**: Project setup and database schema
-- 🔄 **Phase 2**: Authentication (coming soon)
-- ⏳ **Phase 3**: HN article fetching
-- ⏳ **Phase 4**: User interaction tracking
-- ⏳ **Phase 5**: Recommendation engine
-- ⏳ **Phase 6**: Frontend UI
-- ⏳ **Phase 7**: Real-time updates
-
-## 📝 License
-
-MIT License - Open source for the community!
 
 ## 🤝 Contributing
 
-Feel free to fork, modify, and submit issues/PRs.
+We welcome contributions! Here are some ways to help:
+- Add new content sources
+- Improve recommendation algorithms
+- Enhance UI/UX
+- Report bugs and suggest features
+- Improve documentation
+
+Please read our contributing guidelines and submit pull requests to the `main` branch.
+
+## 📝 License
+
+MIT License — feel free to use this project for learning or building your own recommender system.
+
+## 🙏 Acknowledgments
+
+- **Hacker News** for providing quality tech content and API
+- **Supabase** for the amazing backend infrastructure
+- **Vercel** for seamless deployment
+- The open-source community for the incredible tools and libraries
+
+---
+
+**Built with ❤️ for readers who want to spend less time searching and more time reading.**
+
+*Live demo: [next-read-theta.vercel.app](https://next-read-theta.vercel.app)*
