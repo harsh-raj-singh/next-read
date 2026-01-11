@@ -4,53 +4,66 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 
 export async function signIn(formData: FormData) {
-  const supabase = await createClient()
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-  
-  if (error) {
-    return { error: error.message }
+  try {
+    const supabase = await createClient()
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    
+    if (error) {
+      return { error: error.message }
+    }
+    
+    revalidatePath('/')
+    revalidatePath('/dashboard')
+    return { success: true }
+  } catch (error) {
+    console.error('Sign in error:', error)
+    return { error: 'An unexpected error occurred during sign in' }
   }
-  
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  return { success: true }
 }
 
 export async function signUp(formData: FormData) {
-  const supabase = await createClient()
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  
-  if (password.length < 8) {
-    return { error: 'Password must be at least 8 characters' }
-  }
-  
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth-callback`
+  try {
+    const supabase = await createClient()
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    
+    if (password.length < 8) {
+      return { error: 'Password must be at least 8 characters' }
     }
-  })
-  
-  if (error) {
-    return { error: error.message }
+    
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const fullSiteUrl = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${fullSiteUrl}/auth-callback`
+      }
+    })
+    
+    if (error) {
+      return { error: error.message }
+    }
+    
+    revalidatePath('/')
+    revalidatePath('/dashboard')
+    
+    if (data.session) {
+      return { success: true, autoConfirmed: true }
+    }
+    
+    return { success: true, autoConfirmed: false }
+  } catch (error) {
+    console.error('Sign up error:', error)
+    return { error: 'An unexpected error occurred during sign up' }
   }
-  
-  revalidatePath('/')
-  revalidatePath('/dashboard')
-  
-  if (data.session) {
-    return { success: true, autoConfirmed: true }
-  }
-  
-  return { success: true, autoConfirmed: false }
 }
 
 export async function signOut() {
