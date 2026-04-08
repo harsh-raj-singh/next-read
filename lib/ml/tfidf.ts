@@ -1,8 +1,24 @@
-import natural from 'natural';
 import { TFIDFVector } from '../hn/types';
 
-const TfIdf = natural.TfIdf;
-const WordTokenizer = natural.WordTokenizer;
+type TfIdfInstance = {
+  addDocument: (text: string) => void;
+  listTerms: (documentIndex: number) => Array<{ term: string; tfidf: number }>;
+};
+
+type TfIdfConstructor = new () => TfIdfInstance;
+type WordTokenizerInstance = {
+  tokenize: (text: string) => string[] | undefined;
+};
+type WordTokenizerConstructor = new () => WordTokenizerInstance;
+
+// Import only the tokenizer and TF-IDF modules we use so Next.js does not
+// traverse optional classifier dependencies from the package root.
+const { TfIdf } = require('natural/lib/natural/tfidf') as {
+  TfIdf: TfIdfConstructor;
+};
+const { WordTokenizer } = require('natural/lib/natural/tokenizers') as {
+  WordTokenizer: WordTokenizerConstructor;
+};
 
 const STOP_WORDS = new Set([
   'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have',
@@ -47,7 +63,7 @@ export function computeTFIDF(text: string): TFIDFVector {
     return { terms: [], scores: [], magnitude: 0 };
   }
   
-  list.forEach((termObj: any) => {
+  list.forEach((termObj) => {
     terms.push(termObj.term);
     scores.push(termObj.tfidf);
   });
