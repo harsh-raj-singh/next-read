@@ -1,12 +1,16 @@
 {
-  "name": "recommender",
+  "name": "next-read",
   "version": "0.1.0",
   "private": true,
+  "description": "Production-minded technical article recommender built with Next.js, Supabase, and TF-IDF ranking.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
